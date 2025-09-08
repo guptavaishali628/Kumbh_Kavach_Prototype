@@ -73,3 +73,26 @@ h1{
     scale : 1;
     box-shadow: 0px 0px 13px 2px #97989c;
 }
+
+/*------------responsive ness--------------*/
+@media (max-width: 600px){
+    .container{
+        padding: 10px 15px;
+    }
+
+    h1{
+        font-size: 1.4rem;
+    }
+
+   .form input[type="text"],
+   .form input[type="email"],
+   .form input[type="password"]{
+        font-size: 1rem;
+        margin-bottom: 18px;
+        padding: 10px 12px;
+    }
+    .form button {
+    font-size: 1rem;
+    padding: 12px 0;
+   }
+}
