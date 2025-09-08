@@ -3,9 +3,9 @@
 //------------Application data from json----------------------//
 const appData = {
  "statistics":{
-  "totalReports":23,
-   "activeSearches":7,
-   "peopleFound":156
+  "totalReports":3,
+   "activeSearches":3,
+   "peopleFound":0
   },
  "activeAlerts": [
     {
@@ -280,7 +280,7 @@ function updateActiveFilterTab(activeTab){
 }
 function populateStatistics(){
     const totalReportsE1 = document.getElementById('totalReports');
-    const activeSearchesE1 = document.getElementById('activesearches');
+    const activeSearchesE1 = document.getElementById('activeSearches');
     const peopleFoundE1 = document.getElementById('peopleFound');
     
     if(totalReportsE1) totalReportsE1.textContent = appData.statistics.totalReports;
@@ -465,43 +465,73 @@ function removePhoto() {
 }
 
 //------------------------form handling--------------------------//
-function handleReportSubmission(e) {
-  e.preventDefault();
+function handleReportSubmission(e){
+    e.preventDefault();
 
-  if(!validateForm()) {
-    showNotification('Please fill in all required fields' , 'error');
-    return;
-  }
-
-  showLoading();
-
- //-----------simulates API calls----------------//
-  setTimeout(() => {
-    hideLoading();
-
-    //----update statistics----------//
-    reportCounter++;
-    appData.statistics.totalReports = reportCounter;
-    appData.statistics.activeSearches++;
-    populateStatistics();
-
-   //----reset form------//
-    const reportForm = document.getElementById('reportForm');
-    if(reportForm) {
-      reportForm.reset();
-    }
-    removePhoto();
-
-    //----show success modal------//
-    const successModal = document.getElementById('successModal');
-    if (successModal) {
-      showModal(successModal);
+    if(!validateForm()){
+        showNotification('Please fill in all required fields', 'error');
+        return;
     }
 
-    //------Add new Activity------//
-    renderRecentActivity();
-  },2000);
+    showLoading();
+
+    //--------get form values:--------------//
+    const fullName = document.getElementById('fullName').value.trim();
+    const age = parseInt(document.getElementById('age').value.trim());
+    const gender = document.getElementById('gender').value;
+    const lastSeen = document.getElementById('lastSeen').value.trim();
+    const contactNumber = document.getElementById('contactNumber').value.trim();
+    const emergencyContact = document.getElementById('emergencyContact').value.trim();
+    const description = document.getElementById('description').value.trim();
+
+    setTimeout(()=> {
+        hideLoading();
+
+        //----update statistics----//
+        reportCounter++;
+        appData.statistics.totalReports = reportCounter;
+        appData.statistics.activeSearches++;
+
+        //-----create new alert object---//
+        const newAlert = {
+        id: Date.now(), //---unique id based pn timestamp--//
+        name: fullName,
+        age: age,
+        gender: gender,
+        lastSeen: lastSeen,
+        timeAgo: "Just now",
+        distance: "N/A",
+        description: description,
+        contactNumber: contactNumber,
+        emergencyContact: emergencyContact || '',
+        status: "active",
+        reportedBy: "Self-Report"
+       };
+       
+       //---add new alert to activateAlerts Array (at the start):--//
+       appData.activeAlerts.unshift(newAlert);
+
+       //----update UI components-----//
+       populateStatistics();
+       renderAlerts();
+       updateAlertsBadge();
+
+       //-----Reset form and photo preview----//
+       const reportForm = document.getElementById('reportForm');
+       if (reportForm) reportForm.reset();
+       removePhoto();
+
+       //-----show success model----//
+       const successModal = document.getElementById('successModal');
+
+       //---optimal update recent activity or add custom message--//
+       renderRecentActivity();
+
+       showNotification('New missing person report added successfully.', 'success');
+}, 2000);
+
 }
+
 //----------------Alert Action-------------------//
 function markAsFound(alertId){
     const alert = appData.activeAlerts.find(a => a.id === alertId);
@@ -712,3 +742,6 @@ window.KumbhKavach = {
     activateEmergency,
     showNotification
 };
+
+/* javascript code for the dynamic report form data shown in alert */
+
