@@ -1,8 +1,15 @@
 document.getElementById('registration-form').addEventListener('submit', function(e){
+    const adhar = this.elements['adhar-number'].value;
     const password = this.elements['password'].value;
     const confirm = this.elements['confirm-password'].value;
 
-    if(password !== confirm){
+     if (!/^\d{12}$/.test(adhar)) {
+        e.preventDefault();
+        alert("Please enter a valid 12-digit Aadhar Number");
+        return false;
+     }
+
+    else if(password !== confirm){
         e.preventDefault();
         alert("Password do not match!");
         return false;
@@ -19,6 +26,7 @@ document.getElementById('registration-form').addEventListener('submit', function
         alert("Please enter the strong password!");
         return false;
    }
+
 })
 
 

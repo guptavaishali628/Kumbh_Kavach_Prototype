@@ -39,6 +39,7 @@ h1{
 
 .form input[type="text"],
 .form input[type="email"],
+.form input[type="number"],
 .form input[type="password"]{
     margin-bottom: 15px;
     padding: 5px 0 5px 7px;
@@ -85,6 +86,7 @@ h1{
     }
 
    .form input[type="text"],
+   .form input[type="number"],
    .form input[type="email"],
    .form input[type="password"]{
         font-size: 1rem;
