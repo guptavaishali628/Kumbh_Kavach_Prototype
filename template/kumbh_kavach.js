@@ -743,5 +743,157 @@ window.KumbhKavach = {
     showNotification
 };
 
-/* javascript code for the dynamic report form data shown in alert */
+/*------------------------javascript code to update the human icon with the photo after uploading the report data on alert-----------------*/
 
+//-----global variable to upload the photo------//
+let uploadedPhotoDataURL = null;
+
+//-----display uploaded photo preview and stored data URL globally---//
+function displayPhoto(file) {
+  const reader = new FileReader();
+  const uploadArea = document.getElementById('uploadArea');
+  const photoPreview = document.getElementById('photoPreview');
+  const previewImage = document.getElementById('previewImage');
+
+  reader.onload = function(e) {
+    if (previewImage) {
+      previewImage.src = e.target.result;
+      uploadedPhotoDataURL = e.target.result; // store photo data URL
+    }
+    if (uploadArea) {
+      uploadArea.style.display = 'none';
+    }
+    if (photoPreview) {
+      photoPreview.style.display = 'block';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+//-----remove photo preview and reset stored data URL-----//
+function removePhoto(){
+  const photoInput = document.getElementById('photoInput');
+  const uploadArea = document.getElementById('uploadArea');
+  const photoPreview = document.getElementById('photoPreview');
+  const previewImage = document.getElementById('previewImage');
+
+  if (photoInput) photoInput.value = '';
+  if (uploadArea) uploadArea.style.display = 'block';
+  if (photoPreview) photoPreview.style.display = 'none';
+  if (previewImage) previewImage.src = '';
+  uploadedPhotoDataURL(null);
+}
+
+//------handler for form submission: include photo data  URL into alert object---//
+function handleReportSubmission(e) {
+  e.preventDefault();
+
+  if (!validateForm()) {
+    showNotification('Please fill in all required fields', 'error');
+    return;
+  }
+
+  showLoading();
+
+  const fullName = document.getElementById('fullName').value.trim();
+  const age = parseInt(document.getElementById('age').value.trim());
+  const gender = document.getElementById('gender').value;
+  const lastSeen = document.getElementById('lastSeen').value.trim();
+  const contactNumber = document.getElementById('contactNumber').value.trim();
+  const emergencyContact = document.getElementById('emergencyContact').value.trim();
+  const description = document.getElementById('description').value.trim();
+
+  setTimeout(() => {
+    hideLoading();
+
+    reportCounter++;
+    appData.statistics.totalReports = reportCounter;
+    appData.statistics.activeSearches++;
+
+    const newAlert = {
+      id: Date.now(),
+      name: fullName,
+      age: age,
+      gender: gender,
+      lastSeen: lastSeen,
+      timeAgo: "Just now",
+      distance: "N/A",
+      description: description,
+      contactNumber: contactNumber,
+      emergencyContact: emergencyContact || '',
+      status: "active",
+      reportedBy: "Self-Report",
+      photo: uploadedPhotoDataURL
+    };
+
+    appData.activeAlerts.unshift(newAlert);
+
+    populateStatistics();
+    renderAlerts();
+    updateAlertsBadge();
+
+    const reportForm = document.getElementById('reportForm');
+    if (reportForm) reportForm.reset();
+    removePhoto();
+
+    renderRecentActivity();
+    showNotification('New missing person report added successfully.', 'success');
+  }, 2000);
+}
+
+//-----render alert and show photo if available per alert else fallback to icon---//
+function renderAlerts() {
+  const alertsList = document.getElementById('alertsList');
+  if (!alertsList) return;
+
+  let filteredAlerts = appData.activeAlerts;
+
+  // apply your current filter if necessary//
+    alertsList.innerHTML = '';
+
+  filteredAlerts.forEach(alert => {
+    const alertCard = document.createElement('div');
+    alertCard.className = 'alert-card';
+
+    const avatarHTML = alert.photo
+      ? `<img src="${alert.photo}" alt="${alert.name}" class="alert-avatar-img" />`
+      : `<i class="fas fa-user"></i>`;
+
+    alertCard.innerHTML = `
+      <div class="alert-header">
+        <div class="alert-avatar">
+          ${avatarHTML}
+        </div>
+        <div class="alert-info">
+          <h4>${alert.name}, ${alert.age} years</h4>
+          <div class="alert-meta">
+            ${alert.gender} &middot; ${alert.timeAgo} &middot; ${alert.distance} from you
+          </div>
+        </div>
+      </div>
+      <div class="alert-location">
+        <i class="fas fa-map-marker-alt"></i>
+        Last seen: ${alert.lastSeen}
+      </div>
+      <p>${alert.description}</p>
+      <div class="alert-actions">
+        <button class="btn btn--primary" onclick="markAsFound(${alert.id})">
+          <i class="fas fa-check"></i> I Found This Person
+        </button>
+        <button class="btn btn--outline" onclick="contactFamily('${alert.contactNumber}')">
+          <i class="fas fa-phone"></i> Contact
+        </button>
+      </div>
+    `;
+    alertsList.appendChild(alertCard);
+  });
+
+  if (filteredAlerts.length === 0) {
+    alertsList.innerHTML = `
+      <div class="card" style="text-align:center; padding: 2rem;">
+        <i class="fas fa-search" style="font-size: 3rem; color: var(--color-text-secondary); margin-bottom: 1rem;"></i>
+        <p>No alerts found for this filter.</p>
+      </div>
+    `;
+  }
+}
